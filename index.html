@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner Genie - 自動 Banner 生成系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#F8FAFC',
+                        surface: '#FFFFFF',
+                        primary: '#9AA6B2',
+                        secondary: '#BCCCDC',
+                        highlight: '#D9EAFD',
+                        text: '#334155'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #F8FAFC; color: #334155; }
+        .radio-card-input:checked + .radio-card {
+            border-color: #9AA6B2;
+            background-color: #F0F4F8;
+            box-shadow: 0 4px 6px -1px rgba(154, 166, 178, 0.2);
+        }
+        .radio-card-input:checked + .radio-card .check-icon {
+            opacity: 1;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #9AA6B2;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+<div id="app" class="max-w-5xl mx-auto px-4 py-8">
+    
+    <!-- Header -->
+    <header class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-slate-700 tracking-tight">Banner Genie <span class="text-primary text-lg font-normal ml-2">自動生成系統</span></h1>
+        <p class="text-slate-500 mt-2 text-sm">輸入文案，選擇風格，一鍵產出全尺寸行銷素材。</p>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Inputs & Flow -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Step 1: 輸入內容 -->
+            <div class="bg-white rounded-xl shadow-sm border border-secondary p-6">
+                <div class="flex items-center mb-4">
+                    <span class="bg-primary text-white text-xs font-bold px-2 py-1 rounded mr-2">Step 1</span>
+                    <h2 class="font-bold text-lg">內容設定</h2>
+                </div>
+
+                <!-- Input Forms -->
+                <div class="space-y-4">
+                    <!-- Headline -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">主文字 (Headline) <span class="text-red-400">*</span></label>
+                        <input v-model="form.headline" type="text" placeholder="例如：全館 7 折起" class="w-full rounded-md border-secondary shadow-sm focus:border-primary focus:ring focus:ring-highlight focus:ring-opacity-50 px-3 py-2 text-sm transition bg-bg" maxlength="20">
+                        <div class="flex justify-end text-xs text-slate-400 mt-1">{{ form.headline.length }}/20</div>
+                    </div>
+
+                    <!-- Subheadline -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">副文字 (Subheadline)</label>
+                        <input v-model="form.subheadline" type="text" placeholder="例如：指定商品限量優惠" class="w-full rounded-md border-secondary shadow-sm focus:border-primary focus:ring focus:ring-highlight focus:ring-opacity-50 px-3 py-2 text-sm transition bg-bg" maxlength="30">
+                    </div>
+
+                    <!-- Highlight Text -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">重點凸顯 (Badge/Label)</label>
+                        <input v-model="form.highlightText" type="text" placeholder="例如：限時 48 小時" class="w-full rounded-md border-secondary shadow-sm focus:border-primary focus:ring focus:ring-highlight focus:ring-opacity-50 px-3 py-2 text-sm transition bg-bg" maxlength="16">
+                        <p class="text-xs text-slate-400 mt-1">用於凸顯關鍵資訊，如：限時倒數、限量組數。</p>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">上傳參考圖 (選填)</label>
+                        <div class="flex items-center space-x-2">
+                            <label class="cursor-pointer bg-slate-50 border border-secondary text-slate-600 px-3 py-2 rounded-md text-sm hover:bg-highlight transition flex items-center w-full justify-center">
+                                <i class="fas fa-image mr-2"></i> {{ uploadedImageName || '選擇圖片 (PNG/JPG)' }}
+                                <input type="file" @change="handleImageUpload" accept="image/png, image/jpeg" class="hidden">
+                            </label>
+                            <button v-if="uploadedImage" @click="clearImage" class="text-slate-400 hover:text-red-400 px-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: 文案優化 (AI) -->
+            <div class="bg-white rounded-xl shadow-sm border border-secondary p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <span class="bg-secondary text-slate-700 text-xs font-bold px-2 py-1 rounded mr-2">Step 2</span>
+                        <h2 class="font-bold text-lg">AI 文案優化 (選用)</h2>
+                    </div>
+                    <button @click="generateCopyIdeas" :disabled="!form.headline || isGeneratingCopy" class="text-primary hover:text-slate-700 text-sm font-medium disabled:opacity-50">
+                        <span v-if="isGeneratingCopy"><i class="fas fa-spinner fa-spin mr-1"></i> 思考中...</span>
+                        <span v-else><i class="fas fa-magic mr-1"></i> 產生建議</span>
+                    </button>
+                </div>
+
+                <!-- Copy Suggestions -->
+                <div v-if="copySuggestions.length > 0" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    <div v-for="(copy, index) in copySuggestions" :key="index" @click="applyCopy(copy)" 
+                         class="p-3 border border-slate-100 rounded-lg hover:bg-highlight cursor-pointer transition group relative">
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-primary text-xs">套用</div>
+                        <p class="font-bold text-sm text-slate-800">{{ copy.headline }}</p>
+                        <p class="text-xs text-slate-500">{{ copy.subheadline }} <span v-if="copy.highlightText" class="ml-2 bg-slate-200 px-1 rounded">{{ copy.highlightText }}</span></p>
+                    </div>
+                </div>
+                <div v-else class="text-center py-4 text-slate-400 text-sm border border-dashed border-slate-200 rounded-lg">
+                    填寫主文字後，點擊按鈕獲取 AI 創意
+                </div>
+            </div>
+
+            <!-- Step 3: 風格選擇 -->
+            <div class="bg-white rounded-xl shadow-sm border border-secondary p-6">
+                 <div class="flex items-center mb-4">
+                    <span class="bg-primary text-white text-xs font-bold px-2 py-1 rounded mr-2">Step 3</span>
+                    <h2 class="font-bold text-lg">選擇風格</h2>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-1 custom-scroll">
+                    <div v-for="style in styles" :key="style.id" class="relative">
+                        <input type="radio" :id="style.id" :value="style.id" v-model="form.style" class="peer radio-card-input hidden">
+                        <label :for="style.id" class="radio-card block p-3 border border-slate-200 rounded-lg cursor-pointer transition hover:border-secondary h-full flex flex-col justify-center">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-semibold text-slate-700">{{ style.label }}</span>
+                                <i class="check-icon fas fa-check-circle text-primary opacity-0 transition-opacity"></i>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button @click="generateBanners" :disabled="!isFormValid || isGeneratingBanners" 
+                class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-4 rounded-xl shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                <span v-if="isGeneratingBanners" class="flex items-center">
+                    <span class="loader mr-3 border-white border-t-transparent"></span>
+                    正在繪製 Banner ({{ completedCount }}/4)...
+                </span>
+                <span v-else>
+                    <i class="fas fa-layer-group mr-2"></i> 立即生成 4 款 Banner
+                </span>
+            </button>
+
+        </div>
+
+        <!-- Right Column: Preview & Output -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Inspiration (Hidden by default, shown if generated) -->
+            <div v-if="inspirationPrompts.length > 0" class="bg-white rounded-xl p-4 border border-secondary mb-4">
+                <h3 class="text-sm font-bold text-slate-600 mb-2"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>AI 視覺靈感</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span v-for="(prompt, idx) in inspirationPrompts" :key="idx" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full border border-slate-200">
+                        {{ prompt }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="bg-white rounded-xl shadow-sm border border-secondary p-6 min-h-[600px]">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                    <h2 class="font-bold text-xl text-slate-700">生成結果預覽</h2>
+                    <div v-if="generatedBanners.length > 0">
+                        <button @click="resetBanners" class="text-sm text-slate-400 hover:text-slate-600">清除重來</button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div v-if="generatedBanners.length === 0 && !isGeneratingBanners" class="flex flex-col items-center justify-center h-96 text-slate-300">
+                    <i class="fas fa-images text-6xl mb-4 text-slate-200"></i>
+                    <p>尚未生成任何 Banner</p>
+                    <p class="text-sm mt-2">請完成左側設定並點擊生成</p>
+                </div>
+
+                <!-- Loading State (Skeleton) -->
+                <div v-if="isGeneratingBanners" class="space-y-6 animate-pulse">
+                    <div class="h-48 bg-slate-100 rounded-lg w-full"></div>
+                    <div class="flex gap-4">
+                        <div class="h-24 bg-slate-100 rounded-lg w-1/2"></div>
+                        <div class="h-24 bg-slate-100 rounded-lg w-1/2"></div>
+                    </div>
+                </div>
+
+                <!-- Results Grid -->
+                <div v-if="generatedBanners.length > 0" class="space-y-8">
+                    <div v-for="(banner, index) in generatedBanners" :key="index" class="group relative bg-slate-50 border border-slate-200 rounded-lg p-2 transition hover:shadow-md">
+                        <!-- Size Label -->
+                        <div class="absolute top-0 left-0 bg-slate-800 text-white text-[10px] px-2 py-1 rounded-br-lg z-10 opacity-75">
+                            {{ banner.width }} x {{ banner.height }}
+                        </div>
+                        
+                        <!-- Image Container -->
+                        <div class="flex justify-center items-center overflow-hidden bg-white" style="background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;">
+                            <img :src="banner.url" :alt="banner.size" class="max-w-full h-auto object-contain shadow-sm">
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="mt-2 flex justify-between items-center px-1">
+                            <span class="text-xs text-slate-500 font-mono">{{ banner.width }}x{{ banner.height }}px</span>
+                            <button @click="downloadBanner(banner)" class="text-primary hover:text-slate-800 text-sm flex items-center">
+                                <i class="fas fa-download mr-1"></i> 下載 PNG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r shadow-sm">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-shield-alt text-amber-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-xs text-amber-700">
+                            <strong>安全性與部署提醒：</strong><br>
+                            本頁面為前端 Demo，直接在瀏覽器呼叫 Gemini API。
+                            正式部署時，請務必透過後端 Proxy 轉發請求，並實作 API Key 保護、Rate Limit 與來源網域限制。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp, ref, computed, reactive } = Vue;
+
+    createApp({
+        setup() {
+            // --- State ---
+            const apiKey = ""; // System will inject at runtime
+            const isGeneratingBanners = ref(false);
+            const isGeneratingCopy = ref(false);
+            const completedCount = ref(0);
+            const uploadedImage = ref(null);
+            const uploadedImageName = ref('');
+            
+            const form = reactive({
+                headline: '',
+                subheadline: '',
+                highlightText: '',
+                style: 'minimal_sale'
+            });
+
+            const copySuggestions = ref([]);
+            const inspirationPrompts = ref([]);
+            const generatedBanners = ref([]);
+
+            const styles = [
+                { id: "minimal_sale", label: "極簡促銷 Minimal Sale" },
+                { id: "bold_promo", label: "強烈折扣 Bold Promotion" },
+                { id: "finance_trust", label: "專業金融 Finance / Trust" },
+                { id: "tech", label: "科技感 Tech" },
+                { id: "lifestyle_warm", label: "溫暖生活 Lifestyle" },
+                { id: "festive_general", label: "節慶通用 Festive" },
+                { id: "mid_year_end_year", label: "年中 / 年終促銷 Anniversary" },
+                { id: "new_arrival", label: "新品上市 New product launch" },
+                { id: "flash_sale", label: "限時快閃 Limited-time flash sale" },
+                { id: "brand_steady", label: "品牌形象穩重款 Stable brand" }
+            ];
+
+            const targetSizes = [
+                { width: 970, height: 250 },
+                { width: 440, height: 50 },
+                { width: 300, height: 100 },
+                { width: 970, height: 500 }
+            ];
+
+            // --- Computed ---
+            const isFormValid = computed(() => {
+                return form.headline.length > 0 && form.style;
+            });
+
+            // --- Methods ---
+
+            // Image Upload Handler
+            const handleImageUpload = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                uploadedImageName.value = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Get Base64 without the prefix for API
+                    const base64String = e.target.result;
+                    uploadedImage.value = base64String.split(',')[1]; 
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const clearImage = () => {
+                uploadedImage.value = null;
+                uploadedImageName.value = '';
+            };
+
+            const applyCopy = (copy) => {
+                form.headline = copy.headline;
+                form.subheadline = copy.subheadline;
+                form.highlightText = copy.highlightText;
+            };
+
+            // API: Generate Copy
+            const generateCopyIdeas = async () => {
+                if (!form.headline) return;
+                isGeneratingCopy.value = true;
+                copySuggestions.value = [];
+
+                try {
+                    // Optimized prompt for Taiwan Traditional Chinese consistency
+                    const prompt = `
+                        SYSTEM_INSTRUCTION: 
+                        You are a professional marketing copywriter based in Taiwan. 
+                        Strictly use "Taiwan Traditional Chinese (zh-TW)". 
+                        Do NOT use Simplified Chinese or PRC terminology.
+                        Tone: Professional, Localized, Engaging.
+
+                        任務：請根據以下主標題與風格，提供 3 組優化後的廣告文案 JSON。
+                        輸入主標題: "${form.headline}"
+                        風格: ${styles.find(s => s.id === form.style).label}
+                        
+                        回傳格式 (JSON Array):
+                        [{"headline": "...", "subheadline": "...", "highlightText": "..."}]
+                        
+                        限制：
+                        1. Headline 15字內, Subheadline 20字內, Highlight 10字內。
+                        2. 確保語意通順，符合台灣當地行銷用語習慣。
+                        3. 絕對不可出現亂碼或簡體字。
+                    `;
+
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            generationConfig: { responseMimeType: "application/json" }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.text();
+                        throw new Error(`Copy API Error: ${err}`);
+                    }
+
+                    const data = await response.json();
+                    if (data.candidates && data.candidates[0].content) {
+                        const jsonText = data.candidates[0].content.parts[0].text;
+                        copySuggestions.value = JSON.parse(jsonText);
+                    }
+                } catch (error) {
+                    console.error("Copy Gen Error:", error);
+                    alert("文案生成失敗，請稍後再試。");
+                } finally {
+                    isGeneratingCopy.value = false;
+                }
+            };
+
+            // API: Generate Single Banner
+            const generateSingleBanner = async (sizeObj) => {
+                const styleLabel = styles.find(s => s.id === form.style).label;
+                
+                // Construct a prompt that asks the model to "bake" the text into the image
+                // Note: Models vary in text rendering capability, but we follow the prompt requirements.
+                const promptText = `
+                    SYSTEM_INSTRUCTION: 
+                    You are a professional marketing copywriter based in Taiwan. 
+                    Strictly use "Taiwan Traditional Chinese (zh-TW)". 
+                    Do NOT use Simplified Chinese or PRC terminology.
+                    Tone: Professional, Localized, Engaging.
+
+                    Create a professional web banner advertisement.
+                    Dimensions: ${sizeObj.width}x${sizeObj.height}.
+                    Style: ${styleLabel} (病毒式廣告風格).
+                    
+                    MUST INCLUDE TEXT CLEARLY ON IMAGE:
+                    Headline: "${form.headline}"
+                    Subheadline: "${form.subheadline}"
+                    Badge: "${form.highlightText}"
+
+                    Text Rendering Rules:
+                    1. The text content (Headline,Subheadline and Badge) is in Traditional Chinese (Taiwan). 
+                    2. Ensure characters are rendered accurately without corruption or hallucinated strokes.
+                    3. Font style should be clean, modern, and legible (Sans-serif preferred).
+
+                    Design rules: High readability, modern typography, balanced layout for the specified aspect ratio.
+                `;
+
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: promptText },
+                            // Include uploaded image if exists for image-to-image/editing context
+                            ...(uploadedImage.value ? [{ inlineData: { mimeType: "image/png", data: uploadedImage.value } }] : [])
+                        ]
+                    }],
+                    // Using generateContent for image preview model as per new specs
+                    generationConfig: {
+                        responseModalities: ["IMAGE"]
+                    }
+                };
+
+                try {
+                    // Using gemini-2.5-flash-image-preview for image generation/editing
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Check for network/server errors before parsing JSON
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`API Error for ${sizeObj.width}x${sizeObj.height}: ${response.status}`, errorText);
+                        // Skip this banner but don't crash everything
+                        return null; 
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                        const imagePart = data.candidates[0].content.parts.find(p => p.inlineData);
+                        if (imagePart) {
+                            return {
+                                width: sizeObj.width,
+                                height: sizeObj.height,
+                                url: `data:image/png;base64,${imagePart.inlineData.data}`,
+                                base64: imagePart.inlineData.data
+                            };
+                        }
+                    }
+                    console.warn(`No image data for ${sizeObj.width}x${sizeObj.height}`);
+                    return null;
+                } catch (error) {
+                    // Catch unexpected JSON parse errors or fetch failures
+                    console.error(`Exception generating ${sizeObj.width}x${sizeObj.height}:`, error);
+                    return null; 
+                }
+            };
+
+            // Main Generation Flow (UPDATED to Sequential)
+            const generateBanners = async () => {
+                isGeneratingBanners.value = true;
+                generatedBanners.value = [];
+                completedCount.value = 0;
+
+                try {
+                    // Sequential execution to prevent "Unexpected end of input" from rate limits
+                    for (const size of targetSizes) {
+                        const result = await generateSingleBanner(size);
+                        if (result) {
+                            generatedBanners.value.push(result);
+                        }
+                        // Increment count regardless of success to show progress
+                        completedCount.value++;
+                    }
+
+                    if (generatedBanners.value.length === 0) {
+                        alert("未能生成任何 Banner，請檢查 API Key 或稍後再試。");
+                    }
+
+                } catch (error) {
+                    console.error("Batch Gen Error:", error);
+                    alert("生成過程中發生錯誤，請檢查 API 配額或稍後再試。");
+                } finally {
+                    isGeneratingBanners.value = false;
+                }
+            };
+
+            const resetBanners = () => {
+                generatedBanners.value = [];
+                completedCount.value = 0;
+            };
+
+            const downloadBanner = (banner) => {
+                const link = document.createElement('a');
+                link.href = banner.url;
+                link.download = `banner_${banner.width}x${banner.height}_${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            return {
+                form,
+                styles,
+                uploadedImage,
+                uploadedImageName,
+                copySuggestions,
+                inspirationPrompts,
+                generatedBanners,
+                isFormValid,
+                isGeneratingCopy,
+                isGeneratingBanners,
+                completedCount,
+                handleImageUpload,
+                clearImage,
+                generateCopyIdeas,
+                applyCopy,
+                generateBanners,
+                resetBanners,
+                downloadBanner
+            };
+        }
+    }).mount('#app');
+</script>
+
+</body>
+</html>
