@@ -439,7 +439,7 @@ createApp({
 
         const getGeminiKey = () => {
             // Priority: User Input > Env Variable (simulated empty here)
-            return .value || ''; 
+            return apiKey.value || ''; 
         };
 
         const optimizeText = async () => {
