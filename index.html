@@ -93,6 +93,26 @@
         .ai-border:hover::before {
             opacity: 1;
         }
+        
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
     </style>
 </head>
 <body>
@@ -184,9 +204,16 @@
                             <label class="block text-sm font-medium text-slate-300 mb-1">副標題 (選填)</label>
                             <input v-model="form.subTitle" type="text" placeholder="例如：30天掌握獲利關鍵" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
                         </div>
-                        <div class="md:col-span-2">
+                        <div>
                             <label class="block text-sm font-medium text-slate-300 mb-1">重點文字/CTA (選填)</label>
                             <input v-model="form.cta" type="text" placeholder="例如：限時免費報名" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1 flex items-center gap-1">
+                                顯著文字 (選填) 
+                                <span class="text-[10px] bg-slate-700 px-1.5 rounded text-slate-400">如: 20:00直播、仿按鈕</span>
+                            </label>
+                            <input v-model="form.highlightText" type="text" placeholder="例如：今晚 8 點準時開講" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
                         </div>
                     </div>
 
@@ -203,14 +230,12 @@
                                 </button>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Main Title Suggestion -->
                                 <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
                                     <div class="flex justify-between items-start mb-1">
                                         <span class="text-[10px] text-slate-400 font-bold uppercase">主標題</span>
-                                        <button @click="applySuggestion('mainTitle')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">
-                                            採用 <i class="fas fa-check ml-1"></i>
-                                        </button>
+                                        <button @click="applySuggestion('mainTitle')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">採用 <i class="fas fa-check ml-1"></i></button>
                                     </div>
                                     <p class="text-sm text-indigo-100 font-medium">{{ suggestions.mainTitle }}</p>
                                 </div>
@@ -219,9 +244,7 @@
                                 <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
                                     <div class="flex justify-between items-start mb-1">
                                         <span class="text-[10px] text-slate-400 font-bold uppercase">副標題</span>
-                                        <button @click="applySuggestion('subTitle')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">
-                                            採用 <i class="fas fa-check ml-1"></i>
-                                        </button>
+                                        <button @click="applySuggestion('subTitle')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">採用 <i class="fas fa-check ml-1"></i></button>
                                     </div>
                                     <p class="text-sm text-indigo-100 font-medium">{{ suggestions.subTitle || '(無建議)' }}</p>
                                 </div>
@@ -230,11 +253,18 @@
                                 <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
                                     <div class="flex justify-between items-start mb-1">
                                         <span class="text-[10px] text-slate-400 font-bold uppercase">CTA</span>
-                                        <button @click="applySuggestion('cta')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">
-                                            採用 <i class="fas fa-check ml-1"></i>
-                                        </button>
+                                        <button @click="applySuggestion('cta')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">採用 <i class="fas fa-check ml-1"></i></button>
                                     </div>
                                     <p class="text-sm text-indigo-100 font-medium">{{ suggestions.cta || '(無建議)' }}</p>
+                                </div>
+
+                                <!-- Highlight Text Suggestion -->
+                                <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">顯著文字</span>
+                                        <button @click="applySuggestion('highlightText')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">採用 <i class="fas fa-check ml-1"></i></button>
+                                    </div>
+                                    <p class="text-sm text-indigo-100 font-medium">{{ suggestions.highlightText || '(無建議)' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -245,17 +275,44 @@
                 <div class="glass-panel p-6 rounded-xl">
                     <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-brand-success pl-3">2. 色系組合</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                        <!-- Presets -->
                         <div v-for="color in colorSchemes" :key="color.id" 
-                             @click="form.selectedColor = color"
+                             @click="selectPresetColor(color)"
                              :class="form.selectedColor.id === color.id ? 'ring-2 ring-brand-success scale-105' : 'opacity-70 hover:opacity-100'"
-                             class="cursor-pointer bg-slate-800 rounded-lg p-3 transition-all duration-200 border border-slate-700">
-                            <div class="flex h-12 rounded-md overflow-hidden mb-2">
+                             class="cursor-pointer bg-slate-800 rounded-lg p-3 transition-all duration-200 border border-slate-700 h-32 flex flex-col justify-between">
+                            <div class="flex h-12 rounded-md overflow-hidden mb-2 shadow-md">
                                 <div class="w-1/2 h-full" :style="{ backgroundColor: color.main }"></div>
                                 <div class="w-1/2 h-full" :style="{ backgroundColor: color.sub }"></div>
                             </div>
                             <div class="text-center">
                                 <div class="text-sm font-bold text-white">{{ color.name }}</div>
                                 <div class="text-[10px] text-slate-400">{{ color.desc }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Color -->
+                        <div @click="selectCustomColor"
+                             :class="form.selectedColor.id === 'custom' ? 'ring-2 ring-brand-success scale-105' : 'opacity-70 hover:opacity-100'"
+                             class="cursor-pointer bg-slate-800 rounded-lg p-3 transition-all duration-200 border border-slate-700 h-32 flex flex-col relative group">
+                             
+                            <div class="text-center mb-1">
+                                <div class="text-sm font-bold text-white">自訂配色</div>
+                                <div class="text-[10px] text-slate-400">點擊輸入色碼</div>
+                            </div>
+
+                            <div class="flex justify-between items-center gap-2 mt-auto">
+                                <div class="flex flex-col items-center flex-1">
+                                    <div class="relative w-full h-8 rounded overflow-hidden border border-slate-600 mb-1" :style="{backgroundColor: customColor.main}">
+                                        <input type="color" v-model="customColor.main" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                                    </div>
+                                    <input type="text" v-model="customColor.main" class="w-full bg-slate-900 text-[9px] text-center text-slate-300 rounded border-none p-0.5 font-mono">
+                                </div>
+                                <div class="flex flex-col items-center flex-1">
+                                    <div class="relative w-full h-8 rounded overflow-hidden border border-slate-600 mb-1" :style="{backgroundColor: customColor.sub}">
+                                        <input type="color" v-model="customColor.sub" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
+                                    </div>
+                                    <input type="text" v-model="customColor.sub" class="w-full bg-slate-900 text-[9px] text-center text-slate-300 rounded border-none p-0.5 font-mono">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -266,25 +323,37 @@
                     <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-brand-success pl-3">3. 設計風格</h2>
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                         
+                        <!-- Manual Input Option -->
+                        <div class="bg-slate-800 hover:bg-slate-750 cursor-pointer rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-slate-700 h-32 relative group"
+                             :class="form.selectedStyle.id === 'manual' ? 'ring-2 ring-brand-success bg-slate-700' : ''"
+                             @click="selectManualStyle">
+                            <i class="fas fa-keyboard text-2xl text-slate-400 group-hover:text-blue-400 transition-colors"></i>
+                            <span class="text-sm font-medium text-slate-300">手動輸入風格</span>
+                            
+                            <!-- Input Area (Only show when selected) -->
+                            <div v-if="form.selectedStyle.id === 'manual'" class="absolute inset-0 bg-slate-800 rounded-lg p-2 z-20 flex flex-col">
+                                <textarea v-model="manualStyle.prompt" placeholder="請描述您的風格..." class="w-full h-full bg-slate-900 text-xs text-white p-2 rounded border border-slate-600 resize-none focus:outline-none focus:border-brand-success" @click.stop></textarea>
+                            </div>
+                        </div>
+
                         <!-- Upload Option -->
-                        <div class="ai-border bg-slate-800 hover:bg-slate-750 cursor-pointer rounded-lg p-4 flex flex-col items-center justify-center gap-3 transition-all duration-200 border border-dashed border-slate-600 relative overflow-hidden group h-32"
+                        <div class="ai-border bg-slate-800 hover:bg-slate-750 cursor-pointer rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-dashed border-slate-600 relative overflow-hidden group h-32"
                              @click="triggerFileUpload">
                             
                             <input type="file" ref="fileInput" @change="handleImageUpload" accept="image/*" class="hidden">
                             
                             <div v-if="isAnalyzing" class="flex flex-col items-center">
-                                <i class="fas fa-spinner fa-spin text-2xl text-purple-400 mb-2"></i>
-                                <span class="text-xs text-purple-300">AI 分析中...</span>
+                                <i class="fas fa-spinner fa-spin text-xl text-purple-400 mb-1"></i>
+                                <span class="text-[10px] text-purple-300">AI 分析中...</span>
                             </div>
                             <div v-else-if="customStyle" class="flex flex-col items-center w-full h-full justify-center">
                                 <img :src="customStyle.preview" class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity">
                                 <i class="fas fa-check-circle text-2xl text-green-400 z-10 drop-shadow-lg"></i>
-                                <span class="text-xs font-bold text-white z-10 mt-1 drop-shadow-md">已提取風格</span>
+                                <span class="text-xs font-bold text-white z-10 mt-1 drop-shadow-md">已提取</span>
                             </div>
                             <div v-else class="flex flex-col items-center text-center">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-slate-400 group-hover:text-purple-400 transition-colors"></i>
-                                <span class="text-sm font-medium text-slate-300 mt-2 group-hover:text-white">上傳參考圖</span>
-                                <span class="text-[10px] text-slate-500">AI 自動提取風格</span>
+                                <i class="fas fa-cloud-upload-alt text-2xl text-slate-400 group-hover:text-purple-400 transition-colors"></i>
+                                <span class="text-sm font-medium text-slate-300 mt-1 group-hover:text-white">上傳參考圖</span>
                             </div>
                             
                             <!-- Overlay selection for custom style -->
@@ -296,8 +365,8 @@
                         <div v-for="style in styles" :key="style.id"
                              @click="selectStyle(style)"
                              :class="form.selectedStyle.id === style.id ? 'ring-2 ring-brand-success bg-slate-700' : 'bg-slate-800 hover:bg-slate-700'"
-                             class="cursor-pointer rounded-lg p-4 flex flex-col items-center justify-center gap-3 transition-all duration-200 border border-slate-700 h-32 relative">
-                            <i :class="style.icon" class="text-3xl" :style="{ color: form.selectedStyle.id === style.id ? '#10b981' : '#94a3b8' }"></i>
+                             class="cursor-pointer rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-slate-700 h-32 relative">
+                            <i :class="style.icon" class="text-2xl" :style="{ color: form.selectedStyle.id === style.id ? '#10b981' : '#94a3b8' }"></i>
                             <span class="text-sm font-medium text-center">{{ style.name }}</span>
                         </div>
                     </div>
@@ -398,7 +467,7 @@
                                 <i class="fas fa-bullhorn text-brand-purple"></i>
                                 社群行銷文案生成器 (Social Media Kit)
                             </h2>
-                            <p class="text-sm text-slate-400 mt-1">AI 自動為您撰寫適合 FB、IG、LINE 的吸睛貼文。</p>
+                            <p class="text-sm text-slate-400 mt-1">AI 自動為您撰寫適合 FB、IG、LINE 的吸睛貼文與對應圖片 Prompt。</p>
                         </div>
                         <button @click="generateSocialCopy" :disabled="isGeneratingSocial"
                                 class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -409,43 +478,41 @@
                     </div>
 
                     <div v-if="socialCopy" class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up">
-                        <!-- Facebook -->
-                        <div class="glass-panel p-0 rounded-xl overflow-hidden border border-slate-600">
-                            <div class="bg-[#1877F2] p-3 flex justify-between items-center">
-                                <span class="text-white font-bold text-sm"><i class="fab fa-facebook mr-2"></i>Facebook 長文案</span>
-                                <button @click="copyToClipboard(socialCopy.facebook)" class="text-white/80 hover:text-white text-xs"><i class="fas fa-copy"></i></button>
+                        
+                        <!-- Social Cards Loop -->
+                        <div v-for="(platform, key) in { facebook: {icon: 'fab fa-facebook', bg: 'bg-[#1877F2]', name: 'Facebook'}, instagram: {icon: 'fab fa-instagram', bg: 'bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45]', name: 'Instagram'}, line: {icon: 'fab fa-line', bg: 'bg-[#00C300]', name: 'LINE'} }" :key="key" 
+                             class="glass-panel p-0 rounded-xl overflow-hidden border border-slate-600 flex flex-col">
+                            
+                            <div :class="platform.bg" class="p-3 flex justify-between items-center">
+                                <span class="text-white font-bold text-sm"><i :class="platform.icon" class="mr-2"></i>{{ platform.name }}</span>
                             </div>
-                            <div class="p-4">
-                                <textarea readonly class="w-full h-64 bg-slate-900/50 text-slate-300 text-sm p-3 rounded focus:outline-none resize-none" :value="socialCopy.facebook"></textarea>
+                            
+                            <div class="p-4 flex-grow flex flex-col gap-3">
+                                <!-- Content -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">貼文內容</span>
+                                        <button @click="copyToClipboard(socialCopy[key].content)" class="text-slate-400 hover:text-white text-xs"><i class="fas fa-copy"></i></button>
+                                    </div>
+                                    <textarea readonly class="w-full h-40 bg-slate-900/50 text-slate-300 text-sm p-3 rounded focus:outline-none resize-none mb-2" :value="socialCopy[key].content"></textarea>
+                                </div>
+                                
+                                <!-- Image Prompt -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-[10px] text-brand-purple font-bold uppercase">配圖 Prompt</span>
+                                        <button @click="copyToClipboard(socialCopy[key].image_prompt)" class="text-slate-400 hover:text-white text-xs"><i class="fas fa-copy"></i></button>
+                                    </div>
+                                    <textarea readonly class="w-full h-24 bg-purple-900/20 text-purple-200 text-xs font-mono p-3 rounded focus:outline-none resize-none border border-purple-500/30" :value="socialCopy[key].image_prompt"></textarea>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Instagram -->
-                        <div class="glass-panel p-0 rounded-xl overflow-hidden border border-slate-600">
-                            <div class="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] p-3 flex justify-between items-center">
-                                <span class="text-white font-bold text-sm"><i class="fab fa-instagram mr-2"></i>Instagram 貼文</span>
-                                <button @click="copyToClipboard(socialCopy.instagram)" class="text-white/80 hover:text-white text-xs"><i class="fas fa-copy"></i></button>
-                            </div>
-                            <div class="p-4">
-                                <textarea readonly class="w-full h-64 bg-slate-900/50 text-slate-300 text-sm p-3 rounded focus:outline-none resize-none" :value="socialCopy.instagram"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- LINE -->
-                        <div class="glass-panel p-0 rounded-xl overflow-hidden border border-slate-600">
-                            <div class="bg-[#00C300] p-3 flex justify-between items-center">
-                                <span class="text-white font-bold text-sm"><i class="fab fa-line mr-2"></i>LINE 推播</span>
-                                <button @click="copyToClipboard(socialCopy.line)" class="text-white/80 hover:text-white text-xs"><i class="fas fa-copy"></i></button>
-                            </div>
-                            <div class="p-4">
-                                <textarea readonly class="w-full h-64 bg-slate-900/50 text-slate-300 text-sm p-3 rounded focus:outline-none resize-none" :value="socialCopy.line"></textarea>
-                            </div>
-                        </div>
                     </div>
                     
                     <div v-else-if="!isGeneratingSocial" class="text-center py-12 border-2 border-dashed border-slate-700 rounded-xl text-slate-500">
                         <i class="fas fa-robot text-4xl mb-3 opacity-50"></i>
-                        <p>點擊上方按鈕，讓 AI 為您撰寫專屬行銷文案</p>
+                        <p>點擊上方按鈕，讓 AI 為您撰寫專屬行銷文案與配圖 Prompt</p>
                     </div>
                 </div>
 
@@ -469,7 +536,7 @@
 </div>
 
 <script>
-const { createApp, ref, reactive, computed } = Vue;
+const { createApp, ref, reactive, computed, watch } = Vue;
 
 createApp({
     setup() {
@@ -501,6 +568,21 @@ createApp({
             { id: 5, name: '明亮活力', desc: '親切、入門', main: '#F4A261', sub: '#FFFFFF' }
         ];
 
+        const customColor = reactive({
+            id: 'custom',
+            name: '自訂配色',
+            desc: '自選雙色',
+            main: '#000000',
+            sub: '#ffffff'
+        });
+
+        const manualStyle = reactive({
+            id: 'manual',
+            name: '手動輸入風格',
+            icon: 'fas fa-keyboard',
+            prompt: ''
+        });
+
         const styles = [
             { id: 'neo_minimalism', name: '新極簡主義', icon: 'fas fa-feather', prompt: 'Neo-Minimalism style, lots of negative space, clean beige or light gray background, sense of stability and peace, ultra clean layout.' },
             { id: 'glassmorphism', name: '科技玻璃感', icon: 'fas fa-layer-group', prompt: 'Glassmorphism style, frosted glass background effects, semi-transparent floating cards, high-tech analysis vibe, transparency.' },
@@ -525,6 +607,7 @@ createApp({
             mainTitle: '',
             subTitle: '',
             cta: '',
+            highlightText: '', // New Field
             selectedColor: colorSchemes[1],
             selectedStyle: styles[1]
         });
@@ -549,6 +632,18 @@ createApp({
 
         const selectStyle = (style) => {
             form.selectedStyle = style;
+        };
+
+        const selectPresetColor = (color) => {
+            form.selectedColor = color;
+        };
+
+        const selectCustomColor = () => {
+            form.selectedColor = customColor;
+        };
+
+        const selectManualStyle = () => {
+            form.selectedStyle = manualStyle;
         };
 
         const triggerFileUpload = () => {
@@ -581,15 +676,18 @@ createApp({
                 const prompt = `
                     You are a professional marketing copywriter for stock trading courses.
                     Please optimize the following text to be more catchy, high-converting, and professional.
+                    
                     Input Main Title: "${form.mainTitle}"
                     Input Sub Title: "${form.subTitle}"
                     Input CTA: "${form.cta}"
+                    Input Highlight Text: "${form.highlightText}"
                     
                     Respond ONLY with a JSON object in this format (no markdown code blocks):
                     {
                         "mainTitle": "Optimized Main Title (Traditional Chinese)",
                         "subTitle": "Optimized Sub Title (Traditional Chinese)",
-                        "cta": "Optimized CTA (Traditional Chinese)"
+                        "cta": "Optimized CTA (Traditional Chinese)",
+                        "highlightText": "Optimized Highlight Text (Traditional Chinese, keep it short)"
                     }
                 `;
 
@@ -620,7 +718,7 @@ createApp({
         const applySuggestion = (field) => {
             if (suggestions.value && suggestions.value[field]) {
                 form[field] = suggestions.value[field];
-                showNotification(`已套用 ${field === 'mainTitle' ? '主標題' : field === 'subTitle' ? '副標題' : 'CTA'}`);
+                showNotification(`已套用 ${field === 'mainTitle' ? '主標題' : field === 'subTitle' ? '副標題' : field === 'cta' ? 'CTA' : '顯著文字'}`);
             }
         };
 
@@ -635,25 +733,52 @@ createApp({
             isGeneratingSocial.value = true;
             socialCopy.value = null;
 
+            // Determine effective style
+            let effectiveStyle = form.selectedStyle.prompt;
+            if(form.selectedStyle.id === 'manual') effectiveStyle = manualStyle.prompt;
+
+            // Resolve Color (Copy logic from generatePromptVariations)
+            let mainColor = form.selectedColor.main;
+            let subColor = form.selectedColor.sub;
+            if (form.selectedColor.id === 'custom') {
+                mainColor = customColor.main;
+                subColor = customColor.sub;
+            }
+
             try {
                 const prompt = `
                     Act as a professional social media manager for a stock trading course.
                     Based on the following details, write 3 distinct social media posts in Traditional Chinese (Taiwanese Style).
+                    ALSO, provide a specific AI image generation prompt (in English) for each post.
+
+                    CRITICAL: The generated image prompts MUST strictly follow the defined Visual Style and Color Palette below.
 
                     Course Title: "${form.mainTitle}"
                     Subtitle: "${form.subTitle}"
                     CTA: "${form.cta}"
-                    Visual Style: "${form.selectedStyle.name}"
+                    Highlight Info: "${form.highlightText}"
+                    
+                    Visual Style Description: "${effectiveStyle}"
+                    Color Palette: Main Color ${mainColor}, Accent Color ${subColor}. (Do not render hex codes as text).
 
-                    1. **Facebook Post**: Professional, informative, slightly longer, storytelling approach. Emphasize the pain points of investing and the solution.
-                    2. **Instagram Post**: Emotional, high energy, concise. Uses emojis and relevant hashtags. Focus on the visual appeal and quick benefits.
-                    3. **LINE Broadcast**: Short, punchy, direct. Focus on urgency and the CTA link.
+                    1. **Facebook**: Professional, informative, storytelling.
+                    2. **Instagram**: Emotional, high energy, emojis, hashtags.
+                    3. **LINE**: Short, punchy, direct urgency.
 
                     Respond ONLY with a valid JSON object in this format (no markdown):
                     {
-                        "facebook": "Content for Facebook...",
-                        "instagram": "Content for Instagram...",
-                        "line": "Content for LINE..."
+                        "facebook": {
+                            "content": "Post content...",
+                            "image_prompt": "Detailed AI image prompt (English). Include: '${effectiveStyle}', 'Main Color ${mainColor}', 'Accent Color ${subColor}'..."
+                        },
+                        "instagram": {
+                            "content": "Post content...",
+                            "image_prompt": "Detailed AI image prompt (English). Include: '${effectiveStyle}', 'Main Color ${mainColor}', 'Accent Color ${subColor}'..."
+                        },
+                        "line": {
+                            "content": "Post content...",
+                            "image_prompt": "Detailed AI image prompt (English). Include: '${effectiveStyle}', 'Main Color ${mainColor}', 'Accent Color ${subColor}'..."
+                        }
                     }
                 `;
 
@@ -751,9 +876,26 @@ createApp({
         const generatePromptVariations = () => {
             if (!isFormValid.value) return;
             
-            const stylePrompt = form.selectedStyle.prompt;
-            const colorInstruction = `Color Palette: Use Main Color ${form.selectedColor.main} and Accent Color ${form.selectedColor.sub}. IMPORTANT: Use these hex colors for the visual theme and elements, but do NOT render the hex code text on the image.`;
-            const contentInstruction = `Text to render (Chinese Traditional): "${form.mainTitle}". ${form.subTitle ? `Secondary text: "${form.subTitle}".` : ''} ${form.cta ? `Call to action: "${form.cta}".` : ''}`;
+            // Resolve Style
+            let stylePrompt = form.selectedStyle.prompt;
+            if (form.selectedStyle.id === 'manual') {
+                if (!manualStyle.prompt) {
+                    showNotification("請輸入手動風格描述");
+                    return;
+                }
+                stylePrompt = manualStyle.prompt;
+            }
+
+            // Resolve Color
+            let mainColor = form.selectedColor.main;
+            let subColor = form.selectedColor.sub;
+            if (form.selectedColor.id === 'custom') {
+                mainColor = customColor.main;
+                subColor = customColor.sub;
+            }
+
+            const colorInstruction = `Color Palette: Use Main Color ${mainColor} and Accent Color ${subColor}. IMPORTANT: Use these hex colors for the visual theme and elements, but do NOT render the hex code text on the image.`;
+            const contentInstruction = `Text to render (Chinese Traditional): "${form.mainTitle}". ${form.subTitle ? `Secondary text: "${form.subTitle}".` : ''} ${form.cta ? `Call to action: "${form.cta}".` : ''} ${form.highlightText ? `Highlight/Button text: "${form.highlightText}".` : ''}`;
             const qualityInstruction = "High quality, 8k resolution, commercial photography or 3D render, clean typography.";
 
             const v1 = `[Variation: Balanced]
@@ -817,6 +959,8 @@ Ensure main text "${form.mainTitle}" is legible and fits within the ${size.width
             isFormValid,
             styles,
             colorSchemes,
+            customColor,
+            manualStyle,
             targetSizes,
             promptVariations,
             finalPrompts,
@@ -824,6 +968,9 @@ Ensure main text "${form.mainTitle}" is legible and fits within the ${size.width
             handleImageUpload,
             triggerFileUpload,
             selectStyle,
+            selectPresetColor,
+            selectCustomColor,
+            selectManualStyle,
             generatePromptVariations,
             selectVariation,
             copyToClipboard
