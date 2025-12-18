@@ -37,6 +37,13 @@
                     },
                     animation: {
                         'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
@@ -65,7 +72,6 @@
         
         .ai-gradient-text {
             background: linear-gradient(to right, #38bdf8, #818cf8);
-            background-clip: text; /* Added standard property for compatibility */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -182,6 +188,56 @@
                             <input v-model="form.cta" type="text" placeholder="例如：限時免費報名" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
                         </div>
                     </div>
+
+                    <!-- AI Suggestions Panel -->
+                    <transition name="fade">
+                        <div v-if="suggestions" class="mt-6 bg-indigo-900/30 border border-indigo-500/50 rounded-lg p-4 animate-fade-in-up">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+                                    <i class="fas fa-robot"></i> AI 優化建議
+                                    <span class="text-[10px] text-indigo-400 font-normal ml-2">點擊「採用」以套用文案</span>
+                                </h3>
+                                <button @click="suggestions = null" class="text-xs text-slate-400 hover:text-white transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Main Title Suggestion -->
+                                <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">主標題</span>
+                                        <button @click="applySuggestion('mainTitle')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">
+                                            採用 <i class="fas fa-check ml-1"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-indigo-100 font-medium">{{ suggestions.mainTitle }}</p>
+                                </div>
+                                
+                                <!-- Sub Title Suggestion -->
+                                <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">副標題</span>
+                                        <button @click="applySuggestion('subTitle')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">
+                                            採用 <i class="fas fa-check ml-1"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-indigo-100 font-medium">{{ suggestions.subTitle || '(無建議)' }}</p>
+                                </div>
+
+                                <!-- CTA Suggestion -->
+                                <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">CTA</span>
+                                        <button @click="applySuggestion('cta')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">
+                                            採用 <i class="fas fa-check ml-1"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-indigo-100 font-medium">{{ suggestions.cta || '(無建議)' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
                 </div>
 
                 <!-- Color Selection -->
@@ -271,15 +327,21 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6">
-                    <div v-for="(promptText, index) in promptVariations" :key="index" class="glass-panel p-6 rounded-xl border border-slate-700 hover:border-slate-500 transition-colors">
+                    <div v-for="(variation, index) in promptVariations" :key="index" class="glass-panel p-6 rounded-xl border border-slate-700 hover:border-slate-500 transition-colors">
                         <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-bold text-brand-success">變體 #{{ index + 1 }}</h3>
-                            <button @click="copyToClipboard(promptText)" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-3 py-1 rounded border border-slate-600">
+                            <div>
+                                <h3 class="font-bold text-brand-success flex items-center gap-2">
+                                    <span class="bg-brand-success/20 px-2 py-0.5 rounded text-sm">#{{ index + 1 }}</span>
+                                    {{ variation.title }}
+                                </h3>
+                                <p class="text-xs text-slate-400 mt-1">{{ variation.description }}</p>
+                            </div>
+                            <button @click="copyToClipboard(variation.text)" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-3 py-1 rounded border border-slate-600">
                                 <i class="fas fa-copy mr-1"></i> 複製文字
                             </button>
                         </div>
                         <div class="relative group">
-                            <textarea readonly class="w-full h-32 bg-slate-900/50 text-slate-300 text-sm font-mono p-4 rounded-lg border border-slate-800 focus:outline-none resize-none mb-4">{{ promptText }}</textarea>
+                            <textarea readonly class="w-full h-32 bg-slate-900/50 text-slate-300 text-sm font-mono p-4 rounded-lg border border-slate-800 focus:outline-none resize-none mb-4">{{ variation.text }}</textarea>
                             <button @click="selectVariation(index)" 
                                     class="w-full py-3 bg-slate-700 hover:bg-brand-success hover:text-slate-900 text-white font-bold rounded-lg transition-colors border border-slate-600">
                                 選擇此風格並生成尺寸變體
@@ -360,6 +422,7 @@ createApp({
         // AI State
         const isOptimizing = ref(false);
         const isAnalyzing = ref(false);
+        const suggestions = ref(null);
         const customStyle = ref(null); // { id: 'custom', name: '自訂', icon: '...', prompt: '...', preview: 'base64' }
         const fileInput = ref(null);
 
@@ -484,16 +547,22 @@ createApp({
                 
                 const result = JSON.parse(text);
                 
-                form.mainTitle = result.mainTitle;
-                form.subTitle = result.subTitle;
-                form.cta = result.cta;
-                showNotification("文案優化完成！");
+                // Store suggestions instead of replacing immediately
+                suggestions.value = result;
+                showNotification("AI 建議已生成，請查看下方建議區");
 
             } catch (error) {
                 console.error(error);
                 showNotification("優化失敗，請檢查 API Key 或網路");
             } finally {
                 isOptimizing.value = false;
+            }
+        };
+
+        const applySuggestion = (field) => {
+            if (suggestions.value && suggestions.value[field]) {
+                form[field] = suggestions.value[field];
+                showNotification(`已套用 ${field === 'mainTitle' ? '主標題' : field === 'subTitle' ? '副標題' : 'CTA'}`);
             }
         };
 
@@ -567,7 +636,7 @@ createApp({
             reader.readAsDataURL(file);
         };
 
-        // --- Prompt Generation Logic (Same as before) ---
+        // --- Prompt Generation Logic (Updated with Descriptions) ---
 
         const generatePromptVariations = () => {
             if (!isFormValid.value) return;
@@ -598,12 +667,17 @@ ${contentInstruction}
 Composition: Maximum negative space, clean lines, focus entirely on the text and one key visual element.
 ${qualityInstruction}`;
 
-            promptVariations.value = [v1, v2, v3];
+            // Updated to array of objects
+            promptVariations.value = [
+                { title: "平衡構圖 (Balanced)", description: "視覺重心居中，字體粗獷，展現專業穩重感。", text: v1 },
+                { title: "動態視角 (Dynamic)", description: "運用景深與動態模糊，營造市場快速變化的張力。", text: v2 },
+                { title: "極簡留白 (Minimalist)", description: "最大化負空間，去除雜訊，聚焦於核心訊息。", text: v3 }
+            ];
             step.value = 2;
         };
 
         const selectVariation = (index) => {
-            const base = promptVariations.value[index];
+            const base = promptVariations.value[index].text; // Access text property
             targetSizes.forEach(size => {
                 finalPrompts[size.label] = `${base}
                 
@@ -623,6 +697,8 @@ Ensure main text "${form.mainTitle}" is legible and fits within the ${size.width
             toastMessage,
             isOptimizing,
             isAnalyzing,
+            suggestions,
+            applySuggestion,
             customStyle,
             fileInput,
             form,
