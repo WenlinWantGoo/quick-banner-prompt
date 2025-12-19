@@ -364,10 +364,13 @@
                         <!-- Existing Styles -->
                         <div v-for="style in styles" :key="style.id"
                              @click="selectStyle(style)"
-                             :class="form.selectedStyle.id === style.id ? 'ring-2 ring-brand-success bg-slate-700' : 'bg-slate-800 hover:bg-slate-700'"
+                             :class="`bg-[url('${style.backgroundImage.replace('url(', '').replace(')', '')}')] bg-cover bg-center ${form.selectedStyle.id === style.id ? 'ring-2 ring-brand-success bg-slate-700' : 'bg-slate-800 hover:bg-slate-700'}`"
                              class="cursor-pointer rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-slate-700 h-32 relative">
-                            <i :class="style.icon" class="text-2xl" :style="{ color: form.selectedStyle.id === style.id ? '#10b981' : '#94a3b8' }"></i>
-                            <span class="text-sm font-medium text-center">{{ style.name }}</span>
+                            <!-- 黑色半透明遮罩 -->
+                            <div class="absolute inset-0 bg-black/70 rounded-lg"></div>
+                            
+                            <i :class="style.icon" class="text-2xl relative z-10" :style="{ color: form.selectedStyle.id === style.id ? '#10b981' : '#94a3b8' }"></i>
+                            <span class="text-sm font-medium text-center relative z-10">{{ style.name }}</span>
                         </div>
                     </div>
                 </div>
@@ -584,16 +587,16 @@ createApp({
         });
 
         const styles = [
-            { id: 'neo_minimalism', name: '新極簡主義', icon: 'fas fa-feather', prompt: 'Neo-Minimalism style, lots of negative space, clean beige or light gray background, sense of stability and peace, ultra clean layout.' },
-            { id: 'glassmorphism', name: '科技玻璃感', icon: 'fas fa-layer-group', prompt: 'Glassmorphism style, frosted glass background effects, semi-transparent floating cards, high-tech analysis vibe, transparency.' },
-            { id: 'bold_color', name: '大膽撞色', icon: 'fas fa-palette', prompt: 'Bold Color Revival style, high saturation contrast, pop art influence, explosive market growth feeling, sharp edges.' },
-            { id: 'cyberpunk', name: '賽博龐克', icon: 'fas fa-microchip', prompt: 'Cyberpunk style, neon lights, dark background, flowing data streams, quantitative trading vibe, glowing grids.' },
-            { id: '3d_fluid', name: '3D 抽象流體', icon: 'fas fa-water', prompt: '3D Fluid Abstract style, metallic or liquid flowing textures, visualizing money flow and market trends, smooth gradients.' },
-            { id: 'isometric', name: '等距 3D', icon: 'fas fa-cubes', prompt: 'Isometric 3D style, game-like 3D financial charts, gold coins, mobile phone models, cute but professional 3D render.' },
-            { id: 'retro_future', name: '復古未來', icon: 'fas fa-backward', prompt: 'Retro Futurism style, 80s synthwave aesthetic, grid background, vintage computer fonts, classic technical analysis charts.' },
-            { id: 'knolling', name: '散布式工具', icon: 'fas fa-tools', prompt: 'Knolling style, flat lay photography, neatly arranged investment tools, laptop, candlestick charts, pen, coffee, organized.' },
-            { id: 'professional', name: '專業信賴', icon: 'fas fa-user-tie', prompt: 'Professional Trust style, deep blue tones, blurred real office background, cinematic lighting, trustworthy atmosphere.' },
-            { id: 'data_viz', name: '數據藝術', icon: 'fas fa-chart-line', prompt: 'Data Visualization Art style, candlestick charts transformed into artistic lines, clean background, fundamental analysis focus.' }
+            { id: 'neo_minimalism', name: '新極簡主義', icon: 'fas fa-feather', prompt: 'Neo-Minimalism style, lots of negative space, clean beige or light gray background, sense of stability and peace, ultra clean layout.', backgroundImage: 'url(https://duk.tw/hswOew.png)' },
+            { id: 'glassmorphism', name: '科技玻璃感', icon: 'fas fa-layer-group', prompt: 'Glassmorphism style, frosted glass background effects, semi-transparent floating cards, high-tech analysis vibe, transparency.', backgroundImage: 'url(https://duk.tw/Wpaw68.png)' },
+            { id: 'bold_color', name: '大膽撞色', icon: 'fas fa-palette', prompt: 'Bold Color Revival style, high saturation contrast, pop art influence, explosive market growth feeling, sharp edges.', backgroundImage: 'url(https://duk.tw/v47lqj.png)' },
+            { id: 'cyberpunk', name: '賽博龐克', icon: 'fas fa-microchip', prompt: 'Cyberpunk style, neon lights, dark background, flowing data streams, quantitative trading vibe, glowing grids.', backgroundImage: 'url(https://duk.tw/DHMG90.png)' },
+            { id: '3d_fluid', name: '3D 抽象流體', icon: 'fas fa-water', prompt: '3D Fluid Abstract style, metallic or liquid flowing textures, visualizing money flow and market trends, smooth gradients.', backgroundImage: 'url(https://duk.tw/scnnIR.png)' },
+            { id: 'isometric', name: '等距 3D', icon: 'fas fa-cubes', prompt: 'Isometric 3D style, game-like 3D financial charts, gold coins, mobile phone models, cute but professional 3D render.', backgroundImage: 'url(https://duk.tw/XY0Hki.png)' },
+            { id: 'retro_future', name: '復古未來', icon: 'fas fa-backward', prompt: 'Retro Futurism style, 80s synthwave aesthetic, grid background, vintage computer fonts, classic technical analysis charts.', backgroundImage: 'url(https://duk.tw/LrNmBN.png)' },
+            { id: 'knolling', name: '散布式工具', icon: 'fas fa-tools', prompt: 'Knolling style, flat lay photography, neatly arranged investment tools, laptop, candlestick charts, pen, coffee, organized.', backgroundImage: 'url(https://duk.tw/DAznyW.png)' },
+            { id: 'professional', name: '專業信賴', icon: 'fas fa-user-tie', prompt: 'Professional Trust style, deep blue tones, blurred real office background, cinematic lighting, trustworthy atmosphere.', backgroundImage: 'url(https://duk.tw/PwdJA7.png)' },
+            { id: 'data_viz', name: '數據藝術', icon: 'fas fa-chart-line', prompt: 'Data Visualization Art style, candlestick charts transformed into artistic lines, clean background, fundamental analysis focus.', backgroundImage: 'url(https://duk.tw/2kMUxQ.png)' }
         ];
 
         const targetSizes = [
