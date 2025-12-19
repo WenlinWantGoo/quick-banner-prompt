@@ -111,6 +111,21 @@
             border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.2);
         }
+        .hover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3); /* 半透明遮罩 */
+            border: 2px solid transparent;
+            border-radius: 0.5rem; /* 圓角 */
+            z-index: 10; /* 確保在背景圖片之上 */
+            opacity: 0; /* 預設隱藏 */
+            transition: opacity 0.3s, border-color 0.3s;
+        }
+
+        .hover-overlay:hover {
+            opacity: 1; /* 顯示遮罩 */
+            border-color: #10b981; /* 綠色邊框 */
+        }
     </style>
 </head>
 <body>
@@ -361,15 +376,14 @@
 
                         <!-- Existing Styles -->
                         <div v-for="style in styles" :key="style.id"
-                             @click="selectStyle(style)"
-                             :class="`bg-[url('${style.backgroundImage.replace('url(', '').replace(')', '')}')] bg-cover bg-center ${form.selectedStyle.id === style.id ? 'ring-2 ring-brand-success bg-slate-700' : 'bg-slate-800 hover:bg-slate-700'}`"
-                             class="cursor-pointer rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-slate-700 h-32 relative">
-                            <!-- 黑色半透明遮罩 -->
+                            @click="selectStyle(style)"
+                            :class="`cursor-pointer rounded-lg p-3 flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-slate-700 h-32 relative ${
+                                form.selectedStyle.id === style.id ? 'ring-2 ring-brand-success scale-105' : 'hover:bg-slate-700 '} bg-[url('${style.backgroundImage.replace('url(', '').replace(')', '')}')] bg-cover bg-center`">
                             <div class="absolute inset-0 bg-black/70 rounded-lg"></div>
-                            
-                            <i :class="style.icon" class="text-2xl relative z-10" :style="{ color: form.selectedStyle.id === style.id ? '#10b981' : '#94a3b8' }"></i>
+                            <i :class="style.icon" class="text-2xl relative z-10 " :style="{ color: form.selectedStyle.id === style.id ? '#10b981' : '#94a3b8' }"></i>
                             <span class="text-sm font-medium text-center relative z-10">{{ style.name }}</span>
                         </div>
+
                     </div>
                 </div>
 
@@ -598,10 +612,10 @@ createApp({
         ];
 
         const targetSizes = [
-            { width: 970, height: 250, label: 'top_banner', usage: '頂部橫幅', modifier: 'Panoramic view, Wide shot, Horizontal composition, negative space on sides for text placement, elements spread out horizontally.' },
-            { width: 440, height: 50, label: 'small_banner', usage: '小型橫幅', modifier: 'Extreme wide strip, minimalist elements, very simple background pattern to allow text readability, avoid clutter.' },
-            { width: 300, height: 100, label: 'sidebar', usage: '側邊欄', modifier: 'Compact composition, close-up on key visual element, simplified visual hierarchy.' },
-            { width: 970, height: 500, label: 'hero', usage: '大型看板', modifier: 'Hero shot, detailed 3D composition, complex layering, vertical depth, rich details.' }
+            { width: 970, height: 250, safeHeightRatio: 23, label: 'top_banner', usage: '頂部橫幅', modifier: 'Panoramic view, Wide shot, Horizontal composition, negative space on sides for text placement, elements spread out horizontally.' },
+            { width: 440, height: 50,  safeHeightRatio: 11, label: 'small_banner', usage: '小型橫幅', modifier: 'Extreme wide strip, minimalist elements, very simple background pattern to allow text readability, avoid clutter.' },
+            { width: 300, height: 100, safeHeightRatio: 33, label: 'sidebar', usage: '側邊欄', modifier: 'Compact composition, close-up on key visual element, simplified visual hierarchy.' },
+            { width: 970, height: 500, safeHeightRatio: 56, label: 'hero', usage: '大型看板', modifier: 'Hero shot, detailed 3D composition, complex layering, vertical depth, rich details.' }
         ];
 
         const form = reactive({
@@ -934,9 +948,25 @@ ${qualityInstruction}`;
                 finalPrompts[size.label] = `${base}
                 
 -- SIZE ADJUSTMENT --
-Target Dimension: ${size.width}x${size.height}
-Layout Instruction: ${size.modifier}
-Ensure main text "${form.mainTitle}" is legible and fits within the ${size.width}px width.`;
+Master Aspect Ratio: 16:9
+Target Output Usage: ${size.width}x${size.height}
+
+Layout Instruction:
+Generate a 16:9 horizontal image.
+Main content must be centered both horizontally and vertically.
+Full-width composition.
+Top and bottom areas are non-critical background and safe for cropping.
+
+Safe Area Constraint:
+All critical elements (text, logo, main subject)
+must stay within the central ${size.safeHeightRatio}% of the image height.
+${size.safeHeightRatio <= 15 ? 'Use minimal text. Avoid tall objects. Prefer flat, horizontal visual elements.' : ''}
+
+Text Safety:
+Ensure main text "${form.mainTitle}" is large, clear, centered,
+and fully contained within the safe area,
+so it remains completely visible after cropping to ${size.width}x${size.height}.
+No important elements near edges.`;
             });
             step.value = 3;
         };
