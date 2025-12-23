@@ -97,6 +97,8 @@
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             overflow: hidden;
             padding: 0;
@@ -111,20 +113,17 @@
             border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.2);
         }
-        .hover-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.3); /* 半透明遮罩 */
-            border: 2px solid transparent;
-            border-radius: 0.5rem; /* 圓角 */
-            z-index: 10; /* 確保在背景圖片之上 */
-            opacity: 0; /* 預設隱藏 */
-            transition: opacity 0.3s, border-color 0.3s;
+        
+        /* Custom Checkbox Style */
+        .custom-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
         }
-
-        .hover-overlay:hover {
-            opacity: 1; /* 顯示遮罩 */
-            border-color: #10b981; /* 綠色邊框 */
+        .custom-checkbox:disabled {
+            background-color: #334155;
+            border-color: #475569;
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -208,25 +207,76 @@
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                        <!-- Main Title -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-1">主標題 (必填)</label>
-                            <input v-model="form.mainTitle" type="text" placeholder="例如：當沖實戰攻略" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
+                            <input v-model="form.mainTitle" type="text" placeholder="例如：當沖實戰攻略" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500 mb-2">
+                            <!-- Target Selectors -->
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] text-slate-500 py-1">顯示於:</span>
+                                <label v-for="size in targetSizes" :key="'main'+size.label" class="flex items-center space-x-1 cursor-pointer select-none">
+                                    <input type="checkbox" :value="size.label" v-model="form.mainTitleTargets" 
+                                           :disabled="size.label !== 'small_banner'"
+                                           class="custom-checkbox h-3 w-3 rounded bg-slate-900 border-slate-600 focus:ring-0">
+                                    <span class="text-[10px] text-slate-400" :class="{'text-slate-200': form.mainTitleTargets.includes(size.label)}">{{ size.width }}x{{ size.height }}</span>
+                                </label>
+                            </div>
                         </div>
+
+                        <!-- Sub Title -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-1">副標題 (選填)</label>
-                            <input v-model="form.subTitle" type="text" placeholder="例如：30天掌握獲利關鍵" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
+                            <input v-model="form.subTitle" type="text" placeholder="例如：30天掌握獲利關鍵" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500 mb-2">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] text-slate-500 py-1">顯示於:</span>
+                                <label v-for="size in targetSizes" :key="'sub'+size.label" class="flex items-center space-x-1 cursor-pointer select-none">
+                                    <input type="checkbox" :value="size.label" v-model="form.subTitleTargets" class="custom-checkbox h-3 w-3 rounded bg-slate-900 border-slate-600 focus:ring-0">
+                                    <span class="text-[10px] text-slate-400" :class="{'text-slate-200': form.subTitleTargets.includes(size.label)}">{{ size.width }}x{{ size.height }}</span>
+                                </label>
+                            </div>
                         </div>
+
+                        <!-- CTA -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-1">重點文字/CTA (選填)</label>
-                            <input v-model="form.cta" type="text" placeholder="例如：限時免費報名" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
+                            <input v-model="form.cta" type="text" placeholder="例如：限時免費報名" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500 mb-2">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] text-slate-500 py-1">顯示於:</span>
+                                <label v-for="size in targetSizes" :key="'cta'+size.label" class="flex items-center space-x-1 cursor-pointer select-none">
+                                    <input type="checkbox" :value="size.label" v-model="form.ctaTargets" class="custom-checkbox h-3 w-3 rounded bg-slate-900 border-slate-600 focus:ring-0">
+                                    <span class="text-[10px] text-slate-400" :class="{'text-slate-200': form.ctaTargets.includes(size.label)}">{{ size.width }}x{{ size.height }}</span>
+                                </label>
+                            </div>
                         </div>
+
+                        <!-- Highlight Text -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-1 flex items-center gap-1">
                                 顯著文字 (選填) 
-                                <span class="text-[10px] bg-slate-700 px-1.5 rounded text-slate-400">如: 20:00直播、仿按鈕</span>
+                                <span class="text-[10px] bg-slate-700 px-1.5 rounded text-slate-400">如: 20:00直播</span>
                             </label>
-                            <input v-model="form.highlightText" type="text" placeholder="例如：今晚 8 點準時開講" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500">
+                            <input v-model="form.highlightText" type="text" placeholder="例如：今晚 8 點準時開講" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500 mb-2">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] text-slate-500 py-1">顯示於:</span>
+                                <label v-for="size in targetSizes" :key="'hl'+size.label" class="flex items-center space-x-1 cursor-pointer select-none">
+                                    <input type="checkbox" :value="size.label" v-model="form.highlightTextTargets" class="custom-checkbox h-3 w-3 rounded bg-slate-900 border-slate-600 focus:ring-0">
+                                    <span class="text-[10px] text-slate-400" :class="{'text-slate-200': form.highlightTextTargets.includes(size.label)}">{{ size.width }}x{{ size.height }}</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- More Content Section -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-300 mb-1">更多內容 (選填)</label>
+                            <textarea v-model="form.moreContent" placeholder="例如：講師資歷、詳細課程大綱... (建議僅用於大尺寸看板)" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-brand-success focus:outline-none placeholder-slate-500 h-20 resize-none mb-2"></textarea>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] text-slate-500 py-1">顯示於:</span>
+                                <label v-for="size in targetSizes" :key="'more'+size.label" class="flex items-center space-x-1 cursor-pointer select-none">
+                                    <input type="checkbox" :value="size.label" v-model="form.moreContentTargets" class="custom-checkbox h-3 w-3 rounded bg-slate-900 border-slate-600 focus:ring-0">
+                                    <span class="text-[10px] text-slate-400" :class="{'text-slate-200': form.moreContentTargets.includes(size.label)}">{{ size.width }}x{{ size.height }}</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -278,6 +328,15 @@
                                         <button @click="applySuggestion('highlightText')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">採用 <i class="fas fa-check ml-1"></i></button>
                                     </div>
                                     <p class="text-sm text-indigo-100 font-medium">{{ suggestions.highlightText || '(無建議)' }}</p>
+                                </div>
+
+                                <!-- More Content Suggestion -->
+                                <div class="bg-slate-800/80 p-3 rounded border border-slate-700/50 hover:border-indigo-500/30 transition-colors md:col-span-2">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">更多內容</span>
+                                        <button @click="applySuggestion('moreContent')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors">採用 <i class="fas fa-check ml-1"></i></button>
+                                    </div>
+                                    <p class="text-sm text-indigo-100 font-medium">{{ suggestions.moreContent || '(無建議)' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -618,11 +677,20 @@ createApp({
             { width: 970, height: 500, safeHeightRatio: 56, label: 'hero', usage: '大型看板', modifier: 'Hero shot, detailed 3D composition, complex layering, vertical depth, rich details.' }
         ];
 
+        // Initialize target arrays with all labels
+        const allSizeLabels = targetSizes.map(s => s.label);
+
         const form = reactive({
             mainTitle: '',
+            mainTitleTargets: [...allSizeLabels], // Default all
             subTitle: '',
+            subTitleTargets: [...allSizeLabels],
             cta: '',
-            highlightText: '', // New Field
+            ctaTargets: [...allSizeLabels],
+            highlightText: '',
+            highlightTextTargets: [...allSizeLabels],
+            moreContent: '',
+            moreContentTargets: [], // Default empty or based on logic? Let's leave empty to let user choose
             selectedColor: colorSchemes[1],
             selectedStyle: styles[1]
         });
@@ -681,9 +749,9 @@ createApp({
             if (!form.mainTitle) return;
             const key = getGeminiKey();
             if (!key) {
-                showNotification("請先在右上角設定 API Key 才能使用 AI 功能");
-                showApiKey.value = true;
-                return;
+               showNotification("請先在右上角設定 API Key 才能使用 AI 功能");
+               showApiKey.value = true;
+               return;
             }
 
             isOptimizing.value = true;
@@ -696,13 +764,15 @@ createApp({
                     Input Sub Title: "${form.subTitle}"
                     Input CTA: "${form.cta}"
                     Input Highlight Text: "${form.highlightText}"
+                    Input More Content: "${form.moreContent}"
                     
                     Respond ONLY with a JSON object in this format (no markdown code blocks):
                     {
                         "mainTitle": "Optimized Main Title (Traditional Chinese)",
                         "subTitle": "Optimized Sub Title (Traditional Chinese)",
                         "cta": "Optimized CTA (Traditional Chinese)",
-                        "highlightText": "Optimized Highlight Text (Traditional Chinese, keep it short)"
+                        "highlightText": "Optimized Highlight Text (Traditional Chinese, keep it short)",
+                        "moreContent": "Optimized More Content (Traditional Chinese)"
                     }
                 `;
 
@@ -733,16 +803,16 @@ createApp({
         const applySuggestion = (field) => {
             if (suggestions.value && suggestions.value[field]) {
                 form[field] = suggestions.value[field];
-                showNotification(`已套用 ${field === 'mainTitle' ? '主標題' : field === 'subTitle' ? '副標題' : field === 'cta' ? 'CTA' : '顯著文字'}`);
+                showNotification(`已套用 ${field}`);
             }
         };
 
         const generateSocialCopy = async () => {
             const key = getGeminiKey();
             if (!key) {
-                showNotification("請先在右上角設定 API Key 才能使用此功能");
-                showApiKey.value = true;
-                return;
+               showNotification("請先在右上角設定 API Key 才能使用此功能");
+               showApiKey.value = true;
+               return;
             }
 
             isGeneratingSocial.value = true;
@@ -827,9 +897,9 @@ createApp({
 
             const key = getGeminiKey();
             if (!key) {
-                showNotification("請先在右上角設定 API Key 才能使用圖片分析");
-                showApiKey.value = true;
-                return;
+               showNotification("請先在右上角設定 API Key 才能使用圖片分析");
+               showApiKey.value = true;
+               return;
             }
 
             isAnalyzing.value = true;
@@ -909,28 +979,25 @@ createApp({
                 subColor = customColor.sub;
             }
 
+            // We construct the "Style" part here, but text content is done per size now
             const colorInstruction = `Color Palette: Use Main Color ${mainColor} and Accent Color ${subColor}. IMPORTANT: Use these hex colors for the visual theme and elements, but do NOT render the hex code text on the image.`;
-            const contentInstruction = `Text to render (Chinese Traditional): "${form.mainTitle}". ${form.subTitle ? `Secondary text: "${form.subTitle}".` : ''} ${form.cta ? `Call to action: "${form.cta}".` : ''} ${form.highlightText ? `Highlight/Button text: "${form.highlightText}".` : ''}`;
             const qualityInstruction = "High quality, 8k resolution, commercial photography or 3D render, clean typography.";
 
             const v1 = `[Variation: Balanced]
 ${stylePrompt}
 ${colorInstruction}
-${contentInstruction}
 Composition: Balanced center composition, bold typography, professional lighting.
 ${qualityInstruction}`;
 
             const v2 = `[Variation: Dynamic]
 ${stylePrompt}
 ${colorInstruction}
-${contentInstruction}
 Composition: Dynamic angle, depth of field, motion blur on background elements to suggest market movement.
 ${qualityInstruction}`;
 
             const v3 = `[Variation: Minimalist]
 ${stylePrompt}
 ${colorInstruction}
-${contentInstruction}
 Composition: Maximum negative space, clean lines, focus entirely on the text and one key visual element.
 ${qualityInstruction}`;
 
@@ -945,17 +1012,54 @@ ${qualityInstruction}`;
         const selectVariation = (index) => {
             const base = promptVariations.value[index].text; 
             targetSizes.forEach(size => {
+                
+                // Construct Content Instruction based on checkboxes
+                let textsToRender = [];
+                
+                if (form.mainTitle && form.mainTitleTargets.includes(size.label)) {
+                    textsToRender.push(`Main Title: "${form.mainTitle}"`);
+                }
+                if (form.subTitle && form.subTitleTargets.includes(size.label)) {
+                    textsToRender.push(`Secondary Text: "${form.subTitle}"`);
+                }
+                if (form.cta && form.ctaTargets.includes(size.label)) {
+                    textsToRender.push(`CTA Button: "${form.cta}"`);
+                }
+                if (form.highlightText && form.highlightTextTargets.includes(size.label)) {
+                    textsToRender.push(`Highlight Badge: "${form.highlightText}"`);
+                }
+                if (form.moreContent && form.moreContentTargets.includes(size.label)) {
+                    textsToRender.push(`Additional Info (Small text): "${form.moreContent}"`);
+                }
+
+                const contentInstruction = `Text to render (Chinese Traditional): ${textsToRender.join('. ')}`;
+
+                // Special constraint for 440x50 narrow banner
+                let specificLayoutConstraint = "";
+                if (size.height === 50) {
+                    specificLayoutConstraint = `
+CRITICAL HEIGHT CONSTRAINT (440x50):
+This is an extremely narrow strip.
+It allows ONLY ONE single line of text.
+Text must be short, flat, and horizontally aligned.
+Text MUST be strictly vertically centered within the 50px height.
+ABSOLUTELY NO vertical stacking of text or elements.
+Visuals must be "pancake" flat to fit the extreme aspect ratio.`;
+                }
+
                 finalPrompts[size.label] = `${base}
                 
+${contentInstruction}
+
 -- SIZE ADJUSTMENT --
 Master Aspect Ratio: 16:9
 Target Output Usage: ${size.width}x${size.height}
 
 Layout Instruction:
 Generate a 16:9 horizontal image.
-Main content must be centered both horizontally and vertically.
+${form.mainTitleTargets.includes(size.label) ? 'Main content must be centered.' : 'Focus on visual elements or CTA.'}
 Full-width composition.
-Top and bottom areas are non-critical background and safe for cropping.
+${specificLayoutConstraint}
 
 Safe Area Constraint:
 All critical elements (text, logo, main subject)
@@ -963,8 +1067,7 @@ must stay within the central ${size.safeHeightRatio}% of the image height.
 ${size.safeHeightRatio <= 15 ? 'Use minimal text. Avoid tall objects. Prefer flat, horizontal visual elements.' : ''}
 
 Text Safety:
-Ensure main text "${form.mainTitle}" is large, clear, centered,
-and fully contained within the safe area,
+Ensure rendered text is legible, clear, and fully contained within the safe area,
 so it remains completely visible after cropping to ${size.width}x${size.height}.
 No important elements near edges.`;
             });
