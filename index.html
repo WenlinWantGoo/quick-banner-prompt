@@ -15,7 +15,8 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <!-- Added Noto Serif TC for font preview -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&family=Noto+Serif+TC:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -23,6 +24,7 @@
                 extend: {
                     fontFamily: {
                         sans: ['Noto Sans TC', 'sans-serif'],
+                        serif: ['Noto Serif TC', 'serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
@@ -193,7 +195,7 @@
         <transition name="fade" mode="out-in">
             <section v-if="step === 1" key="step1" class="space-y-8">
                 
-                <!-- Text Inputs -->
+                <!-- 1. Text Inputs -->
                 <div class="glass-panel p-6 rounded-xl relative">
                     <div class="flex justify-between items-center mb-4 border-l-4 border-brand-success pl-3">
                         <h2 class="text-lg font-bold text-white">1. 文案內容</h2>
@@ -343,7 +345,7 @@
                     </transition>
                 </div>
 
-                <!-- Color Selection -->
+                <!-- 2. Color Selection -->
                 <div class="glass-panel p-6 rounded-xl">
                     <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-brand-success pl-3">2. 色系組合</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -390,7 +392,7 @@
                     </div>
                 </div>
 
-                <!-- Style Selection -->
+                <!-- 3. Style Selection -->
                 <div class="glass-panel p-6 rounded-xl">
                     <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-brand-success pl-3">3. 設計風格</h2>
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -443,6 +445,28 @@
                             <span class="text-sm font-medium text-center relative z-10">{{ style.name }}</span>
                         </div>
 
+                    </div>
+                </div>
+
+                <!-- 4. Font Selection -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-brand-success pl-3">4. 字體選用</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div v-for="font in fontOptions" :key="font.id"
+                             @click="selectFont(font)"
+                             :class="form.selectedFont.id === font.id ? 'ring-2 ring-brand-success bg-slate-700' : 'bg-slate-800 hover:bg-slate-750'"
+                             class="cursor-pointer rounded-lg p-4 flex flex-col items-center justify-center gap-3 transition-all duration-200 border border-slate-700 h-32">
+                            
+                            <!-- Visual Preview of Font -->
+                            <div class="text-2xl text-white" :style="{ fontFamily: font.previewStyle }">
+                                永恆獲利
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="text-sm font-medium text-slate-300">{{ font.name }}</div>
+                                <div class="text-[10px] text-slate-500">{{ font.desc }}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -657,6 +681,12 @@ createApp({
             prompt: ''
         });
 
+        const fontOptions = [
+            { id: 'sans', name: '無襯線體 (Sans)', desc: '現代、數位、乾淨', previewStyle: '"Noto Sans TC", sans-serif', prompt: 'Use modern Sans-serif typography (Bold Heiti/Gothic style) for readability.' },
+            { id: 'serif', name: '襯線體 (Serif)', desc: '專業、權威、經典', previewStyle: '"Noto Serif TC", serif', prompt: 'Use elegant Serif typography (Songti/Mincho style) for a premium trustworthy look.' },
+            { id: 'hand', name: '手寫/書法 (Script)', desc: '親切、動態、個性', previewStyle: 'cursive, "KaiTi"', prompt: 'Use dynamic Brush or Handwritten style typography for a human touch.' }
+        ];
+
         const styles = [
             { id: 'neo_minimalism', name: '新極簡主義', icon: 'fas fa-feather', prompt: 'Neo-Minimalism style, lots of negative space, clean beige or light gray background, sense of stability and peace, ultra clean layout.', backgroundImage: 'url(https://duk.tw/hswOew.png)' },
             { id: 'glassmorphism', name: '科技玻璃感', icon: 'fas fa-layer-group', prompt: 'Glassmorphism style, frosted glass background effects, semi-transparent floating cards, high-tech analysis vibe, transparency.', backgroundImage: 'url(https://duk.tw/Wpaw68.png)' },
@@ -690,9 +720,10 @@ createApp({
             highlightText: '',
             highlightTextTargets: [...allSizeLabels],
             moreContent: '',
-            moreContentTargets: [], // Default empty or based on logic? Let's leave empty to let user choose
+            moreContentTargets: [], 
             selectedColor: colorSchemes[1],
-            selectedStyle: styles[1]
+            selectedStyle: styles[1],
+            selectedFont: fontOptions[0] // Default Sans
         });
 
         // --- Logic ---
@@ -729,12 +760,14 @@ createApp({
             form.selectedStyle = manualStyle;
         };
 
+        const selectFont = (font) => {
+            form.selectedFont = font;
+        };
+
         const triggerFileUpload = () => {
             if (customStyle.value) {
-                // If already uploaded, just select it
                 form.selectedStyle = customStyle.value;
             } else {
-                // Otherwise open dialog
                 fileInput.value.click();
             }
         };
@@ -818,11 +851,9 @@ createApp({
             isGeneratingSocial.value = true;
             socialCopy.value = null;
 
-            // Determine effective style
             let effectiveStyle = form.selectedStyle.prompt;
             if(form.selectedStyle.id === 'manual') effectiveStyle = manualStyle.prompt;
 
-            // Resolve Color (Copy logic from generatePromptVariations)
             let mainColor = form.selectedColor.main;
             let subColor = form.selectedColor.sub;
             if (form.selectedColor.id === 'custom') {
@@ -845,6 +876,7 @@ createApp({
                     
                     Visual Style Description: "${effectiveStyle}"
                     Color Palette: Main Color ${mainColor}, Accent Color ${subColor}. (Do not render hex codes as text).
+                    Typography Style: ${form.selectedFont.prompt}
 
                     1. **Facebook**: Professional, informative, storytelling.
                     2. **Instagram**: Emotional, high energy, emojis, hashtags.
@@ -961,7 +993,6 @@ createApp({
         const generatePromptVariations = () => {
             if (!isFormValid.value) return;
             
-            // Resolve Style
             let stylePrompt = form.selectedStyle.prompt;
             if (form.selectedStyle.id === 'manual') {
                 if (!manualStyle.prompt) {
@@ -971,7 +1002,6 @@ createApp({
                 stylePrompt = manualStyle.prompt;
             }
 
-            // Resolve Color
             let mainColor = form.selectedColor.main;
             let subColor = form.selectedColor.sub;
             if (form.selectedColor.id === 'custom') {
@@ -979,25 +1009,28 @@ createApp({
                 subColor = customColor.sub;
             }
 
-            // We construct the "Style" part here, but text content is done per size now
             const colorInstruction = `Color Palette: Use Main Color ${mainColor} and Accent Color ${subColor}. IMPORTANT: Use these hex colors for the visual theme and elements, but do NOT render the hex code text on the image.`;
+            const fontInstruction = `Typography Style: ${form.selectedFont.prompt}`; // Include font instruction
             const qualityInstruction = "High quality, 8k resolution, commercial photography or 3D render, clean typography.";
 
             const v1 = `[Variation: Balanced]
 ${stylePrompt}
 ${colorInstruction}
+${fontInstruction}
 Composition: Balanced center composition, bold typography, professional lighting.
 ${qualityInstruction}`;
 
             const v2 = `[Variation: Dynamic]
 ${stylePrompt}
 ${colorInstruction}
+${fontInstruction}
 Composition: Dynamic angle, depth of field, motion blur on background elements to suggest market movement.
 ${qualityInstruction}`;
 
             const v3 = `[Variation: Minimalist]
 ${stylePrompt}
 ${colorInstruction}
+${fontInstruction}
 Composition: Maximum negative space, clean lines, focus entirely on the text and one key visual element.
 ${qualityInstruction}`;
 
@@ -1095,6 +1128,7 @@ No important elements near edges.`;
             colorSchemes,
             customColor,
             manualStyle,
+            fontOptions,
             targetSizes,
             promptVariations,
             finalPrompts,
@@ -1105,6 +1139,7 @@ No important elements near edges.`;
             selectPresetColor,
             selectCustomColor,
             selectManualStyle,
+            selectFont,
             generatePromptVariations,
             selectVariation,
             copyToClipboard
